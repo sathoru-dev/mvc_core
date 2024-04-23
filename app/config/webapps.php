@@ -1,0 +1,2 @@
+<?php
+    $INSTALLED_APPS = [];

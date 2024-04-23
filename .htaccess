@@ -1,0 +1,10 @@
+#Tratamos las rutas. URLs Amigables
+php_value display_errors 1
+
+AddType text/css .css
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_URI} !\.(?:jpe?g|gif|bmp|png|tiff|css|js)$ [NC]
+
+#Todo el trafico va a ser dirigido hacia Index.php
+RewriteRule ^ index.php [L]

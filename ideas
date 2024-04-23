@@ -1,0 +1,13 @@
+Trabajar con sistema modular tipo Django
+Ej, para crear un modulo se crea una carpeta dentro del directorio app
+Ej "home", dentro de esta estaran el controlaodor, el modelo y funciones exclusivas de este modulo
+con el objetivo de no saturar de codigo las demas aplicaciones,
+estructura basica pensada
+home
+---\home.php # Controlador
+---\model.php # Modelo
+---\functions.php # Archivo con funciones usadas exlusivamente por este
+
+Para el modelo, este se incluira dentro del propio controlador, mediante un metodo heredado desde el controlador base
+el cual tendra nombre personalizado para el modelo, con el fin de poder registrar mas modelos y no confundir los nombres
+ej "$this->include_model(disparador_modelo, 'nombre_modelo')" y ya este se podra usar de forma practica mediante $this
