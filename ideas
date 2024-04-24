@@ -7,6 +7,7 @@ home
 ---\home.php # Controlador
 ---\model.php # Modelo
 ---\functions.php # Archivo con funciones usadas exlusivamente por este
+---\views # Directorio que contendra las vistas
 
 Para el modelo, este se incluira dentro del propio controlador, mediante un metodo heredado desde el controlador base
 el cual tendra nombre personalizado para el modelo, con el fin de poder registrar mas modelos y no confundir los nombres

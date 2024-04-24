@@ -7,4 +7,4 @@
     define('PATH_VIEWS', APP.'views/');
     define('PATH_LAYOUTS', APP.'layouts/');
     define('PATH_STATIC', 'static/');
-    define('APP_FOLDER', 'code_web/'); //si se esta en web dejar vacio
+    define('APP_FOLDER', 'mvc_core/'); //si se esta en web dejar vacio

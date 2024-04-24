@@ -6,6 +6,7 @@
 
     $router = new router();
 
+    #$router->test();
     $router->prepare();
-    $router->fire();
+    #$router->fire();
 ?>
