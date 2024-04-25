@@ -54,13 +54,79 @@
             # Se valida si se obtuvieron resultados
             if ( count($find_urls) == 0 ) { echo "No hay rutas"; exit(); } #TAG: AGREGAR ERROR
 
-            $final_url = array_filter($find_urls, function($item) use($url) {
-                $url_system = $this->urls[$item]; # Obtiene la ruta del arreglo para compararla
-                if ($url_system == $url) { return $item; } # Comparacion estatoca, si las rutas coinciden no tienen parametros
+            # Se recorre el arreglo con los id's de las rutas encontradas
+            foreach( $find_urls as $url_key ) {
+                # Se obtiene la ruta desde el arreglo donde esta registrada
+                $url_system = $this->urls[$url_key];
 
-                else if(str_contains($url_system, '<') || str_contains($url_system, '>')){ # Si contienen parametros
-                    echo "Ruta con parametros";
+                # Comprobar si la ruta solicitada es exactamente igual a la registrada
+                if ($url_system == $url) {
+                    echo "coincide";
+                    break;
                 }
+
+                # Valida si la ruta contiene parametros
+                if(str_contains($url_system, '?')){ # Si contienen parametros
+                    # Se dividen las rutas para verificar individualmente cada elemento
+                    $url_system = explode('/', $url_system);
+                    $url_web = explode('/', $url);
+
+                    # Se recorre la estructura de la ruta registrada, para compararla con la solicitada
+                    foreach($url_system as $index_url => $value_url) {
+
+                        # Verifica si el extracto de la ruta contiene o permite un parametro
+                        if(str_contains($value_url, '?')) {
+
+                            # Obtiene el tipo de parametro que se ha establecido
+                            $type_param = str_replace('?', '', $value_url);
+
+                            #Obtiene el valor del parametro en la ruta capturada por el navegador
+                            $param_web = $url_web[$index_url];
+
+                            # Valida si el el parametro pasado coincide con el tipo de parametro registrado
+                            echo ($type_param == "int" and is_numeric($param_web)) or ($type_param == "str" and is_string($param_web));
+
+                             //print_r($is_param_valid);
+
+                            /*
+                            $valid_num = substr($url_system[$i], 1, strlen($url_system[$i])) == 'num' && is_numeric($url_query[$i]);
+                            $valid_char = substr($url_system[$i], 1, strlen($url_system[$i])) == 'char' && is_string($url_query[$i]);
+
+                            if( $valid_char || $valid_num ) {
+                                $this->params[] .=  $url_query[$i];
+                            } else {
+                                return 'tipo parametro no coincide!';
+                                break;
+                            }*/
+                        }
+                    }
+
+
+                    
+                }
+
+
+
+            }
+
+
+
+            $final_url = array_filter($find_urls, function($item) use ($url) {
+                
+
+                
+
+                #
+
+                # Descomponemos la ruta capturada desde el navegador
+                $url = explode('/', $url);
+                
+
+
+            });
+
+
+            
 
 
                     /*$url_query = explode('/', $url_query);
@@ -87,9 +153,9 @@
             }*/
 
 
-                });
+            
 
-            print_r($final_url);
+            #print_r($final_url);
 
             /*foreach ( $rutas_coincidentes as $route ) {
                 $ruta = $this->_routes[$route];
