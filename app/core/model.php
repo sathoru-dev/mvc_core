@@ -1,5 +1,6 @@
 <?php
     class model {
+
         protected $db;
 
         /**Para facilitar el mantenimiento todas las tablas se declaran en este archivo */
@@ -46,5 +47,12 @@
         public function devolver_objeto(){
             return $this->db;
         }
+    }
+
+
+    class usuariosModel extends model {
+
+
+
     }
 ?>
