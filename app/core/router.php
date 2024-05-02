@@ -10,6 +10,9 @@
          */
         private $urls, $triggers, $names, $size_urls;
 
+        /** En tiempo de ejecucion se van guardando los elementos que se obtienen de las rutas solicitadas */
+        private $controller_match, $method_match, $params_founds;
+
         function __construct() {
             $this->import_urls();
         }
@@ -44,86 +47,97 @@
          */
         public function prepare() {
             # Captura la url actual del navegador
-            $url = $_SERVER['REQUEST_URI'];
-            # Prepara la ruta y elimina elementos insesarios de esta segun el entorno de trabajo que se ha definido
-            $url = ENVIRONMENT == 'dev' ? str_replace("/".APP_FOLDER, '', $url) : implode('/', array_slice(explode('/', $url), 1));
-            $size_url = count(explode('/', $url)); # Cuenta las partes de la url
+            $url_server = $_SERVER['REQUEST_URI'];
 
-            /** Se filtran las urls coincidentes en el tamaño obteniendo solo su id */
-            $find_urls = array_keys(array_filter($this->size_urls, function($item) use ($size_url) { return $item === $size_url; }));
-            # Se valida si se obtuvieron resultados
-            if ( count($find_urls) == 0 ) { echo "No hay rutas"; exit(); } #TAG: AGREGAR ERROR
+            # Prepara la ruta y elimina elementos insesarios de esta segun el entorno de trabajo que se ha definido
+            $url_server = ENVIRONMENT == 'dev' ? str_replace("/".APP_FOLDER, '', $url_server) : implode('/', array_slice(explode('/', $url_server), 1));
+
+            # Cuenta y almacena las partes de la url en una vaiable
+            $size_url = count(explode('/', $url_server));
+
+            # Se filtran las urls coincidentes en el tamaño almacenando solo su id
+            $urls_find = array_keys(
+                            array_filter($this->size_urls, function($item) use ($size_url) {
+                                return $item === $size_url; 
+                            })
+                        );
+
+            /** Veirifica si se obtuvieron resultados, si no, se dispara un error */
+            if ( count($urls_find) == 0 ) {
+                echo "No hay rutas"; exit();
+            }
 
             # Se recorre el arreglo con los id's de las rutas encontradas
-            foreach( $find_urls as $url_key ) {
+            foreach( $urls_find as $url_key ) {
                 # Se obtiene la ruta desde el arreglo donde esta registrada
-                $url_system = $this->urls[$url_key];
+                $url_validating = $this->urls[$url_key];
 
                 # Comprobar si la ruta solicitada es exactamente igual a la registrada
-                if ($url_system == $url) {
+                if ($url_server == $url_validating) {
                     echo "coincide";
                     break;
                 }
+                
+                /**Si la ruta no coincide se continua con la ejecucion
+                 * Se declara una variable para validar si de la url se obtuvo una coicidencia en la url */
+                $url_match = true;
 
-                # Valida si la ruta contiene parametros
-                if(str_contains($url_system, '?')){ # Si contienen parametros
-                    # Se dividen las rutas para verificar individualmente cada elemento
-                    $url_system = explode('/', $url_system);
-                    $url_web = explode('/', $url);
+                # Se define un arreglo para almacenar los parametros enviados por medio de la url
+                $params_tmp = [];
 
-                    # Se recorre la estructura de la ruta registrada, para compararla con la solicitada
-                    foreach($url_system as $index_url => $value_url) {
+                # Se dividen las rutas para verificar individualmente cada elemento
+                $url_validating = explode('/', $url_validating);
+                $url_web = explode('/', $url_server);
 
-                        # Verifica si el extracto de la ruta contiene o permite un parametro
-                        if(str_contains($value_url, '?')) {
+                # Se recorre la estructura de la ruta registrada, para compararla con la solicitada
+                foreach($url_validating as $index_url => $value_url) {
+                    
+                    # Valida si la parte de la ruta solicitada "NO"coincide con la registrada
+                    if ( $value_url !== $url_web[$index_url] and !str_contains($value_url, '?')) {
+                        # Se notifica por medio de la variable
+                        $url_match = false;
 
-                            # Obtiene el tipo de parametro que se ha establecido
-                            $type_param = str_replace('?', '', $value_url);
+                        # Rompe la ejecucion del ciclo
+                        break;
+                    }
+                    
+                    # Si la ruta contiene parametros
+                    elseif (str_contains($value_url, '?')) {
+                        # Verifica si el tipo de parametro reistrado coincide con el enviado por la url
+                        $is_param_valid = match (str_replace('?', '', $value_url)) {
+                            "str" => ctype_alpha($url_web[$index_url]), # Verifica si es string
+                            "int" => is_numeric($url_web[$index_url]), # Verifica si es int
+                        };
 
-                            #Obtiene el valor del parametro en la ruta capturada por el navegador
-                            $param_web = $url_web[$index_url];
+                        /** Verifica la respuesta obtenida de la validacion anterior
+                         * Si los parametros coinciden, se almacenan de forma temporal en el arreglo
+                         */
+                        if( $is_param_valid ) {
+                            $params_tmp[] = $url_web[$index_url];
+                        }
 
-                            # Valida si el el parametro pasado coincide con el tipo de parametro registrado
-                            echo ($type_param == "int" and is_numeric($param_web)) or ($type_param == "str" and is_string($param_web));
+                        # Si el parametro solicitado y el valor obtenido no coincide se notifica
+                        else {
+                            # Se notifica por medio de la variable
+                            $url_match = false;
 
-                             //print_r($is_param_valid);
-
-                            /*
-                            $valid_num = substr($url_system[$i], 1, strlen($url_system[$i])) == 'num' && is_numeric($url_query[$i]);
-                            $valid_char = substr($url_system[$i], 1, strlen($url_system[$i])) == 'char' && is_string($url_query[$i]);
-
-                            if( $valid_char || $valid_num ) {
-                                $this->params[] .=  $url_query[$i];
-                            } else {
-                                return 'tipo parametro no coincide!';
-                                break;
-                            }*/
+                            # Rompe la ejecucion del ciclo
+                            break;
                         }
                     }
-
-
-                    
                 }
 
-
-
+                if ( $url_match ) {
+                    echo "La ruta '{$this->names[$url_key]}' coincide! <br>";
+                    print_r($params_tmp);
+                    break;
+                }
             }
 
 
 
-            $final_url = array_filter($find_urls, function($item) use ($url) {
-                
 
-                
-
-                #
-
-                # Descomponemos la ruta capturada desde el navegador
-                $url = explode('/', $url);
-                
-
-
-            });
+           
 
 
             
